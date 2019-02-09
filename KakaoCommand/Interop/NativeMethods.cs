@@ -14,6 +14,61 @@ namespace KakaoCommand.Interop
         public const int MK_MBUTTON = 0x0010;
         public const int SRCCOPY = 0x00CC0020;
 
+        public enum SysCommands : int
+        {
+            SC_SIZE = 0xF000,
+            SC_MOVE = 0xF010,
+            SC_MINIMIZE = 0xF020,
+            SC_MAXIMIZE = 0xF030,
+            SC_NEXTWINDOW = 0xF040,
+            SC_PREVWINDOW = 0xF050,
+            SC_CLOSE = 0xF060,
+            SC_VSCROLL = 0xF070,
+            SC_HSCROLL = 0xF080,
+            SC_MOUSEMENU = 0xF090,
+            SC_KEYMENU = 0xF100,
+            SC_ARRANGE = 0xF110,
+            SC_RESTORE = 0xF120,
+            SC_TASKLIST = 0xF130,
+            SC_SCREENSAVE = 0xF140,
+            SC_HOTKEY = 0xF150,
+            //#if(WINVER >= 0x0400) //Win95
+            SC_DEFAULT = 0xF160,
+            SC_MONITORPOWER = 0xF170,
+            SC_CONTEXTHELP = 0xF180,
+            SC_SEPARATOR = 0xF00F,
+            //#endif /* WINVER >= 0x0400 */
+
+            //#if(WINVER >= 0x0600) //Vista
+            SCF_ISSECURE = 0x00000001,
+            //#endif /* WINVER >= 0x0600 */
+
+            /*
+              * Obsolete names
+              */
+            SC_ICON = SC_MINIMIZE,
+            SC_ZOOM = SC_MAXIMIZE,
+        }
+
+        public enum SWP
+        {
+            NOSIZE = 0x0001,
+            NOMOVE = 0x0002,
+            NOZORDER = 0x0004,
+            NOREDRAW = 0x0008,
+            NOACTIVATE = 0x0010,
+            DRAWFRAME = 0x0020,
+            FRAMECHANGED = 0x0020,
+            SHOWWINDOW = 0x0040,
+            HIDEWINDOW = 0x0080,
+            NOCOPYBITS = 0x0100,
+            NOOWNERZORDER = 0x0200,
+            NOREPOSITION = 0x0200,
+            NOSENDCHANGING = 0x0400,
+            DEFERERASE = 0x2000,
+            ASYNCWINDOWPOS = 0x4000
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
@@ -814,6 +869,207 @@ namespace KakaoCommand.Interop
             MEDIACENTER = 87,
             REMOTESESSION = 0x1000,
             REMOTECONTROL = 0x2001,
+        }
+
+        public enum ShowWindowCommands : short
+        {
+            /// <summary>
+            /// Hides the window and activates another window.
+            /// </summary>
+            Hide = 0,
+            /// <summary>
+            /// Activates and displays a window. If the window is minimized or 
+            /// maximized, the system restores it to its original size and position.
+            /// An application should specify this flag when displaying the window 
+            /// for the first time.
+            /// </summary>
+            Normal = 1,
+            /// <summary>
+            /// Activates the window and displays it as a minimized window.
+            /// </summary>
+            ShowMinimized = 2,
+            /// <summary>
+            /// Maximizes the specified window.
+            /// </summary>
+            Maximize = 3, // is this the right value?
+                          /// <summary>
+                          /// Activates the window and displays it as a maximized window.
+                          /// </summary>       
+            ShowMaximized = 3,
+            /// <summary>
+            /// Displays a window in its most recent size and position. This value 
+            /// is similar to <see cref="Win32.ShowWindowCommand.Normal"/>, except 
+            /// the window is not activated.
+            /// </summary>
+            ShowNoActivate = 4,
+            /// <summary>
+            /// Activates the window and displays it in its current size and position. 
+            /// </summary>
+            Show = 5,
+            /// <summary>
+            /// Minimizes the specified window and activates the next top-level 
+            /// window in the Z order.
+            /// </summary>
+            Minimize = 6,
+            /// <summary>
+            /// Displays the window as a minimized window. This value is similar to
+            /// <see cref="Win32.ShowWindowCommand.ShowMinimized"/>, except the 
+            /// window is not activated.
+            /// </summary>
+            ShowMinNoActive = 7,
+            /// <summary>
+            /// Displays the window in its current size and position. This value is 
+            /// similar to <see cref="Win32.ShowWindowCommand.Show"/>, except the 
+            /// window is not activated.
+            /// </summary>
+            ShowNA = 8,
+            /// <summary>
+            /// Activates and displays the window. If the window is minimized or 
+            /// maximized, the system restores it to its original size and position. 
+            /// An application should specify this flag when restoring a minimized window.
+            /// </summary>
+            Restore = 9,
+            /// <summary>
+            /// Sets the show state based on the SW_* value specified in the 
+            /// STARTUPINFO structure passed to the CreateProcess function by the 
+            /// program that started the application.
+            /// </summary>
+            ShowDefault = 10,
+            /// <summary>
+            ///  <b>Windows 2000/XP:</b> Minimizes a window, even if the thread 
+            /// that owns the window is not responding. This flag should only be 
+            /// used when minimizing windows from a different thread.
+            /// </summary>
+            ForceMinimize = 11
+        }
+
+        #region Process
+        [StructLayout(LayoutKind.Sequential)]
+        public struct STARTUPINFO
+        {
+            public int cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public int dwX;
+            public int dwY;
+            public int dwXSize;
+            public int dwYSize;
+            public int dwXCountChars;
+            public int dwYCountChars;
+            public int dwFillAttribute;
+            public int dwFlags;
+            public short wShowWindow;
+            public short cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SECURITY_ATTRIBUTES
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public int bInheritHandle;
+        }
+
+        [Flags]
+        public enum STARTF : uint
+        {
+            UseShowWindow = 0x00000001,
+            UseSize = 0x00000002,
+            UsePosition = 0x00000004,
+            UseCountChars = 0x00000008,
+            UseFillAttribute = 0x00000010,
+            RunFullScreen = 0x00000020,  // ignored for non-x86 platforms
+            ForceOnFeedBack = 0x00000040,
+            ForceOffFeedBack = 0x00000080,
+            UseSTDHandles = 0x00000100,
+        }
+
+        [Flags]
+        public enum CreationFlags : int
+        {
+            NONE = 0,
+            DEBUG_PROCESS = 0x00000001,
+            DEBUG_ONLY_THIS_PROCESS = 0x00000002,
+            CREATE_SUSPENDED = 0x00000004,
+            DETACHED_PROCESS = 0x00000008,
+            CREATE_NEW_CONSOLE = 0x00000010,
+            CREATE_NEW_PROCESS_GROUP = 0x00000200,
+            CREATE_UNICODE_ENVIRONMENT = 0x00000400,
+            CREATE_SEPARATE_WOW_VDM = 0x00000800,
+            CREATE_SHARED_WOW_VDM = 0x00001000,
+            CREATE_PROTECTED_PROCESS = 0x00040000,
+            EXTENDED_STARTUPINFO_PRESENT = 0x00080000,
+            CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
+            CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
+            CREATE_DEFAULT_ERROR_MODE = 0x04000000,
+            CREATE_NO_WINDOW = 0x08000000,
+        }
+        #endregion
+
+        public enum GetWindowType : uint
+        {
+            /// <summary>
+            /// The retrieved handle identifies the window of the same type that is highest in the Z order.
+            /// <para/>
+            /// If the specified window is a topmost window, the handle identifies a topmost window.
+            /// If the specified window is a top-level window, the handle identifies a top-level window.
+            /// If the specified window is a child window, the handle identifies a sibling window.
+            /// </summary>
+            GW_HWNDFIRST = 0,
+            /// <summary>
+            /// The retrieved handle identifies the window of the same type that is lowest in the Z order.
+            /// <para />
+            /// If the specified window is a topmost window, the handle identifies a topmost window.
+            /// If the specified window is a top-level window, the handle identifies a top-level window.
+            /// If the specified window is a child window, the handle identifies a sibling window.
+            /// </summary>
+            GW_HWNDLAST = 1,
+            /// <summary>
+            /// The retrieved handle identifies the window below the specified window in the Z order.
+            /// <para />
+            /// If the specified window is a topmost window, the handle identifies a topmost window.
+            /// If the specified window is a top-level window, the handle identifies a top-level window.
+            /// If the specified window is a child window, the handle identifies a sibling window.
+            /// </summary>
+            GW_HWNDNEXT = 2,
+            /// <summary>
+            /// The retrieved handle identifies the window above the specified window in the Z order.
+            /// <para />
+            /// If the specified window is a topmost window, the handle identifies a topmost window.
+            /// If the specified window is a top-level window, the handle identifies a top-level window.
+            /// If the specified window is a child window, the handle identifies a sibling window.
+            /// </summary>
+            GW_HWNDPREV = 3,
+            /// <summary>
+            /// The retrieved handle identifies the specified window's owner window, if any.
+            /// </summary>
+            GW_OWNER = 4,
+            /// <summary>
+            /// The retrieved handle identifies the child window at the top of the Z order,
+            /// if the specified window is a parent window; otherwise, the retrieved handle is NULL.
+            /// The function examines only child windows of the specified window. It does not examine descendant windows.
+            /// </summary>
+            GW_CHILD = 5,
+            /// <summary>
+            /// The retrieved handle identifies the enabled popup window owned by the specified window (the
+            /// search uses the first such window found using GW_HWNDNEXT); otherwise, if there are no enabled
+            /// popup windows, the retrieved handle is that of the specified window.
+            /// </summary>
+            GW_ENABLEDPOPUP = 6
         }
     }
 }

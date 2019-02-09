@@ -1,4 +1,5 @@
-﻿using KakaoCommand.Interop;
+﻿using KakaoCommand.Common;
+using KakaoCommand.Interop;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -39,6 +40,125 @@ namespace KakaoCommand.Utility
         internal Window(IntPtr hwnd)
         {
             Handle = hwnd;
+        }
+
+        public Bitmap Capture()
+        {
+            Size size = Size;
+            var rect = new Rectangle();
+
+            rect.Width = size.Width;
+            rect.Height = size.Height;
+
+            return Screen.Capture(Handle, rect);
+        }
+
+        public Point PositionToClient(Point position)
+        {
+            position.X -= Location.X;
+            position.Y -= Location.Y;
+            
+            return position;
+        }
+
+        public void TouchDown(int x, int y)
+        {
+            int tx = x;
+            int ty = y;
+
+            TouchOffset(ref tx, ref ty);
+
+            UnsafeNativeMethods.SendMessage(
+                Handle,
+                NativeMethods.WM.LBUTTONDOWN,
+                0,
+                MakeLParam(tx, ty));
+
+            TouchMove(x, y);
+        }
+
+        public void TouchUp(int x, int y)
+        {
+            TouchOffset(ref x, ref y);
+
+            UnsafeNativeMethods.SendMessage(
+                Handle,
+                NativeMethods.WM.LBUTTONUP,
+                0,
+                MakeLParam(x, y));
+        }
+
+        public void TouchMove(int x, int y)
+        {
+            TouchOffset(ref x, ref y);
+
+            UnsafeNativeMethods.SendMessage(
+                Handle,
+                NativeMethods.WM.MOUSEMOVE,
+                NativeMethods.MK_LBUTTON,
+                MakeLParam(x, y));
+        }
+
+        public void Touch(int x, int y)
+        {
+            lock (this)
+            {
+                TouchDown(x, y);
+                TouchUp(x, y);
+            }
+        }
+
+        public void KeyDown(Keys key)
+        {
+            UnsafeNativeMethods.PostMessage(
+                GetInputHandle(),
+                NativeMethods.WM.KEYDOWN,
+                (int)key,
+                0);
+        }
+
+        public void KeyUp(Keys key)
+        {
+            UnsafeNativeMethods.PostMessage(
+                GetInputHandle(),
+                NativeMethods.WM.KEYUP,
+                (int)key,
+                0);
+        }
+
+        public void KeyPress(Keys key)
+        {
+            KeyDown(key);
+            KeyUp(key);
+        }
+
+        protected virtual void TouchOffset(ref int x, ref int y)
+        {
+        }
+
+        protected virtual IntPtr GetInputHandle()
+        {
+            return Handle;
+        }
+
+        int MakeLParam(int low, int high)
+        {
+            return (high << 16) | (low & 0xFFFF);
+        }
+
+        public void Show()
+        {
+            UnsafeNativeMethods.PostMessage(Handle, NativeMethods.WM.SYSCOMMAND, (int)NativeMethods.SysCommands.SC_RESTORE, 0);
+        }
+
+        public void Activate()
+        {
+            UnsafeNativeMethods.SetForegroundWindow(Handle);
+        }
+
+        public override string ToString()
+        {
+            return $"{Title} ({Class})";
         }
 
         internal static string GetWindowText(IntPtr hWnd)
